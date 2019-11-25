@@ -24,13 +24,18 @@
 //! [`FixedRadialGradient`]: struct.FixedRadialGradient.html
 //! [unit square]: https://en.wikipedia.org/wiki/Unit_square
 
-use std::borrow::Cow;
+////  TODO: Implement COW
+////use std::borrow::Cow;
+use arrayvec::ArrayVec;  ////
 
 use kurbo::{Point, Rect, Size, Vec2};
 
 use crate::{IntoBrush, RenderContext};
 
 use crate::Color;
+
+type GradientStopArray = [GradientStop; MAX_GRADIENT_STOPS];
+const MAX_GRADIENT_STOPS: usize = 3; //// Max number of gradient stops supported. Should be 2 or more.
 
 /// Specification of a linear gradient.
 ///
@@ -39,7 +44,8 @@ use crate::Color;
 /// of the item being drawn; for these, use [`LinearGradient`] instead.
 ///
 /// [`LinearGradient`]: struct.LinearGradient.html
-#[derive(Debug, Clone)]
+#[derive(Clone)] ////
+////#[derive(Debug, Clone)]
 pub struct FixedLinearGradient {
     /// The start point (corresponding to pos 0.0).
     pub start: Point,
@@ -48,7 +54,8 @@ pub struct FixedLinearGradient {
     /// The stops.
     ///
     /// There must be at least two for the gradient to be valid.
-    pub stops: Vec<GradientStop>,
+    pub stops: ArrayVec::<GradientStopArray>, ////
+    ////pub stops: Vec<GradientStop>,
 }
 
 /// Specification of a radial gradient in image-space.
@@ -58,7 +65,8 @@ pub struct FixedLinearGradient {
 /// of the item being drawn; for these, use [`RadialGradient`] instead.
 ///
 /// [`RadialGradient`]: struct.RadialGradient.html
-#[derive(Debug, Clone)]
+#[derive(Clone)] ////
+////#[derive(Debug, Clone)]
 pub struct FixedRadialGradient {
     /// The center.
     pub center: Point,
@@ -69,7 +77,8 @@ pub struct FixedRadialGradient {
     /// The circle with this radius from the center corresponds to pos 1.0.
     pub radius: f64,
     /// The stops (see similar field in [`LinearGradient`](struct.LinearGradient.html)).
-    pub stops: Vec<GradientStop>,
+    pub stops: ArrayVec::<GradientStopArray>, ////
+    ////pub stops: Vec<GradientStop>,
 }
 
 /// Any fixed gradient.
@@ -81,7 +90,8 @@ pub struct FixedRadialGradient {
 ///
 /// [`FixedLinearGradient`]: struct.FixedLinearGradient.html
 /// [`FixedRadialGradient`]: struct.FixedRadialGradient.html
-#[derive(Debug, Clone)]
+#[derive(Clone)] ////
+////#[derive(Debug, Clone)]
 pub enum FixedGradient {
     /// A linear gradient.
     Linear(FixedLinearGradient),
@@ -90,7 +100,8 @@ pub enum FixedGradient {
 }
 
 /// Specification of a gradient stop.
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy)] ////
+////#[derive(Debug, Clone)]
 pub struct GradientStop {
     /// The coordinate of the stop.
     pub pos: f32,
@@ -100,7 +111,8 @@ pub struct GradientStop {
 
 /// A flexible, ergonomic way to describe gradient stops.
 pub trait GradientStops {
-    fn to_vec(self) -> Vec<GradientStop>;
+    fn to_vec(self) -> ArrayVec::<GradientStopArray>; ////
+    ////fn to_vec(self) -> Vec<GradientStop>;
 }
 
 /// A description of a linear gradient in the unit rect, which can be resolved
@@ -113,11 +125,13 @@ pub trait GradientStops {
 ///
 /// [`UnitPoint`]: struct.UnitPoint.html
 /// [`FixedLinearGradient`]: struct.FixedLinearGradient.html
-#[derive(Debug, Clone)]
+#[derive(Clone)] ////
+////#[derive(Debug, Clone)]
 pub struct LinearGradient {
     start: UnitPoint,
     end: UnitPoint,
-    stops: Vec<GradientStop>,
+    stops: ArrayVec::<GradientStopArray>, ////
+    ////stops: Vec<GradientStop>,
 }
 
 /// A description of a radial gradient in the unit rect, which can be resolved
@@ -147,17 +161,20 @@ pub struct LinearGradient {
 /// [`with_center`]: struct.RadialGradient.html#method.with_center
 /// [`with_origin`]: struct.RadialGradient.html#method.with_origin
 /// [`with_scale_mode`]: struct.RadialGradient.html#method.with_scale_mode
-#[derive(Debug, Clone)]
+#[derive(Clone)] ////
+////#[derive(Debug, Clone)]
 pub struct RadialGradient {
     center: UnitPoint,
     origin: UnitPoint,
     radius: f64,
-    stops: Vec<GradientStop>,
+    stops: ArrayVec::<GradientStopArray>, ////
+    ////stops: Vec<GradientStop>,
     scale_mode: ScaleMode,
 }
 
 /// Mappings from the unit square into a non-square rectangle.
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy)] ////
+////#[derive(Debug, Clone)]
 pub enum ScaleMode {
     /// The unit 1.0 is mapped to the smaller of width & height, but the mapped
     /// item may not cover the entire rectangle.
@@ -174,30 +191,38 @@ pub struct UnitPoint {
     v: f64,
 }
 
-impl GradientStops for Vec<GradientStop> {
-    fn to_vec(self) -> Vec<GradientStop> {
+impl GradientStops for ArrayVec::<GradientStopArray> {
+////impl GradientStops for Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         self
     }
 }
 
+/* ////
 impl<'a> GradientStops for &'a [GradientStop] {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         self.to_owned()
     }
 }
+*/ ////
 
 // Generate equally-spaced stops.
 impl<'a> GradientStops for &'a [Color] {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         if self.is_empty() {
-            Vec::new()
+            ArrayVec::<GradientStopArray>::new()
+            ////Vec::new()
         } else {
             let denom = (self.len() - 1).max(1) as f32;
             self.iter()
                 .enumerate()
                 .map(|(i, c)| GradientStop {
                     pos: (i as f32) / denom,
-                    color: c.to_owned(),
+                    color: *c, ////
+                    ////color: c.to_owned(),
                 })
                 .collect()
         }
@@ -205,35 +230,40 @@ impl<'a> GradientStops for &'a [Color] {
 }
 
 impl<'a> GradientStops for (Color, Color) {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         let stops: &[Color] = &[self.0, self.1];
         GradientStops::to_vec(stops)
     }
 }
 
 impl<'a> GradientStops for (Color, Color, Color) {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         let stops: &[Color] = &[self.0, self.1, self.2];
         GradientStops::to_vec(stops)
     }
 }
 
 impl<'a> GradientStops for (Color, Color, Color, Color) {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         let stops: &[Color] = &[self.0, self.1, self.2, self.3];
         GradientStops::to_vec(stops)
     }
 }
 
 impl<'a> GradientStops for (Color, Color, Color, Color, Color) {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         let stops: &[Color] = &[self.0, self.1, self.2, self.3, self.4];
         GradientStops::to_vec(stops)
     }
 }
 
 impl<'a> GradientStops for (Color, Color, Color, Color, Color, Color) {
-    fn to_vec(self) -> Vec<GradientStop> {
+    fn to_vec(self) -> ArrayVec::<GradientStopArray> { ////
+    ////fn to_vec(self) -> Vec<GradientStop> {
         let stops: &[Color] = &[self.0, self.1, self.2, self.3, self.4, self.5];
         GradientStops::to_vec(stops)
     }
@@ -399,33 +429,41 @@ impl From<FixedRadialGradient> for FixedGradient {
     }
 }
 
-impl<P: RenderContext> IntoBrush<P> for FixedGradient {
-    fn make_brush<'a>(&'a self, piet: &mut P, _bbox: impl FnOnce() -> Rect) -> Cow<'a, P::Brush> {
-        // Also, at some point we might want to be smarter about the extra clone here.
-        Cow::Owned(
-            piet.gradient(self.to_owned())
-                .expect("error creating gradient"),
-        )
+/* ////
+    impl<P: RenderContext> IntoBrush<P> for FixedGradient {
+        fn make_brush<'a>(&'a self, piet: &mut P, _bbox: impl FnOnce() -> Rect) -> P::Brush { ////
+        ////fn make_brush<'a>(&'a self, piet: &mut P, _bbox: impl FnOnce() -> Rect) -> Bow<'a, P::Brush> {
+            // Also, at some point we might want to be smarter about the extra clone here.
+            ////Bow::Owned(
+                piet.gradient(self.clone())
+                ////piet.gradient(self.to_owned())
+                    .expect("error creating gradient")
+            ////)
+        }
     }
-}
 
-impl<P: RenderContext> IntoBrush<P> for LinearGradient {
-    fn make_brush<'a>(&'a self, piet: &mut P, bbox: impl FnOnce() -> Rect) -> Cow<'a, P::Brush> {
-        let rect = bbox();
-        let gradient = self.resolve(rect);
-        // Perhaps the make_brush method should be fallible instead of panicking.
-        Cow::Owned(piet.gradient(gradient).expect("error creating gradient"))
+    impl<P: RenderContext> IntoBrush<P> for LinearGradient {
+        fn make_brush<'a>(&'a self, piet: &mut P, bbox: impl FnOnce() -> Rect) -> P::Brush { ////
+        ////fn make_brush<'a>(&'a self, piet: &mut P, bbox: impl FnOnce() -> Rect) -> Bow<'a, P::Brush> {
+            let rect = bbox();
+            let gradient = self.resolve(rect);
+            // Perhaps the make_brush method should be fallible instead of panicking.
+            piet.gradient(gradient).expect("error creating gradient") ////
+            ////Bow::Owned(piet.gradient(gradient).expect("error creating gradient"))
+        }
     }
-}
 
-impl<P: RenderContext> IntoBrush<P> for RadialGradient {
-    fn make_brush<'a>(&'a self, piet: &mut P, bbox: impl FnOnce() -> Rect) -> Cow<'a, P::Brush> {
-        let rect = bbox();
-        let gradient = self.resolve(rect);
-        // Perhaps the make_brush method should be fallible instead of panicking.
-        Cow::Owned(piet.gradient(gradient).expect("error creating gradient"))
+    impl<P: RenderContext> IntoBrush<P> for RadialGradient {
+        fn make_brush<'a>(&'a self, piet: &mut P, bbox: impl FnOnce() -> Rect) -> P::Brush { ////
+        ////fn make_brush<'a>(&'a self, piet: &mut P, bbox: impl FnOnce() -> Rect) -> Bow<'a, P::Brush> {
+            let rect = bbox();
+            let gradient = self.resolve(rect);
+            // Perhaps the make_brush method should be fallible instead of panicking.
+            piet.gradient(gradient).expect("error creating gradient") ////
+            ////Bow::Owned(piet.gradient(gradient).expect("error creating gradient"))
+        }
     }
-}
+*/ ////
 
 fn equalize_sides_preserving_center(rect: Rect, new_len: f64) -> Rect {
     let size = Size::new(new_len, new_len);
