@@ -24,14 +24,18 @@
 //! [kurbo]: https://crates.io/crates/kurbo
 //! [piet-cairo]: https://crates.io/crates/piet-cairo
 
+#![no_std] ////
 pub use piet::*;
 
 #[doc(hidden)]
 pub use piet::kurbo;
 
+//// Sync with piet-common/Cargo.toml
+/* ////
 #[cfg(any(
     feature = "cairo",
-    not(any(target_arch = "wasm32", target_os = "windows", feature = "direct2d"))
+    not(any(target_arch = "wasm32", target_os = "windows", feature = "direct2d", 
+        target_os = "none", feature = "embedded")) ////
 ))]
 #[path = "cairo_back.rs"]
 mod backend;
@@ -43,5 +47,10 @@ mod backend;
 #[cfg(any(feature = "web", target_arch = "wasm32"))]
 #[path = "web_back.rs"]
 mod backend;
+*/ ////
+
+#[cfg(any(feature = "embedded", all(target_arch = "arm", target_os = "none")))] ////
+#[path = "embedded_graphics_back.rs"] ////
+mod backend; ////
 
 pub use backend::*;
